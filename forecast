@@ -1,0 +1,86 @@
+%Plot Open vs. Close
+%%plot(MSFT(:,2)),hold on,plot(MSFT(:,5),'r')
+%Plot Stock Open vs. NASDAQ
+%%plot(MSFT(:,2)),hold on,plot(NASDAQ(:,5),'r')
+%Cross-price elasticities
+%%chvol = diff(MSFT(:,6))
+%log-log Model to find relation with market
+%loglog(X1,Y1,...)
+%%loglog(MSFT(:,2),NASDAQ(:,2))
+%Sensibility
+
+[Ifoblox,Infobloxdatestr] = readDaily('BLOX','NYSE',120,'1d',[2015,2,10,10,30,15]);
+
+chMSFT = diff(MSFT(:,2));
+chAAPL = diff(AAPL(:,2));
+chEnergy = diff(Energy(:,2));
+chBasicMaterials = diff(BasicMaterials(:,2));
+chIndustrials = diff(Industrials(:,2));
+chCyclical = diff(Cyclical(:,2));
+chNCCG = diff(NCCG(:,2));
+chFinancials = diff(Financials(:,2));
+chHealthcare = diff(Healthcare(:,2));
+chTelecommunications = diff(Telecommunications(:,2));
+chUtilities = diff(Utilities(:,2));
+chSP = diff(SP(:,2));
+chDowJOnes = diff(DowJones(:,2));
+chNASDAQ = diff(NASDAQ(:,2));
+
+%plot(MSFT(:,2)),hold on,plot(AAPL(:,2),'r')
+figure(1),clf
+plot(chMSFT),hold on, plot(chNASDAQ,'r')
+title('MSFT PRice Changes')
+figure(2),clf
+plot(chAAPL),hold on, plot(chNASDAQ,'r')
+title('AAPL PRice Changes')
+figure(3),clf
+plot(chEnergy),hold on, plot(chNASDAQ,'r')
+title('Energy PRice Changes')
+figure(4),clf
+plot(chBasicMaterials),hold on, plot(chNASDAQ,'r')
+title('Basic Materials PRice Changes')
+figure(5),clf
+plot(chIndustrials),hold on, plot(chNASDAQ,'r')
+title('Industrials PRice Changes')
+figure(6),clf
+plot(chCyclical),hold on, plot(chNASDAQ,'r')
+title('Cyclical PRice Changes')
+figure(7),clf
+plot(chNCCG),hold on, plot(chNASDAQ,'r')
+title('Non-Cyclical Goods PRice Changes')
+figure(8),clf
+plot(chFinancials),hold on, plot(chNASDAQ,'r')
+title('Financials PRice Changes')
+figure(9),clf
+plot(chHealthcare),hold on, plot(chNASDAQ,'r')
+title('Healthcare PRice Changes')
+figure(10),clf
+plot(chTelecommunications),hold on, plot(chNASDAQ,'r')
+title('Telecommunications PRice Changes')
+figure(11),clf
+plot(chUtilities),hold on, plot(chNASDAQ,'r')
+title('Utilities PRice Changes')
+figure(12),clf
+plot(MSFT(:,2)-mean(MSFT(:,2))),hold on, plot(NASDAQ(:,2)-mean(NASDAQ(:,2)),'r')
+title('MSFT PRice Changes')
+zmMSFT = MSFT(:,2)-mean(MSFT(:,2));
+zmNASDAQ = NASDAQ(:,2)-mean(NASDAQ(:,2));
+zmMSFT = zmMSFT/std(zmMSFT);
+zmNASDAQ = zmNASDAQ/std(zmNASDAQ);
+plot(zmMSFT),hold on, plot(zmNASDAQ,'r')
+zmBLOX = Ifoblox(:,2)-mean(Ifoblox(:,2));
+zmBLOX = zmBLOX/std(zmBLOX);
+plot(zmBLOX),hold on, plot(zmNASDAQ,'r')
+%Identify areas where prices were moving together
+
+% if posMSFT = (chMSFT>0) && (chNASDAQ>0);
+%    derMSFT = 1;
+%else derMSFT = 0;
+%end
+
+%if chNASDAQ>0;
+%    movementNASDAQ = 1;
+    
+%else movementNASDAQ = -1;
+%end
+%plot(movementMSFT),hold on, plot(movementNASDAQ,'r'), grid on
