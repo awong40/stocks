@@ -1,0 +1,107 @@
+function [Columns,fgrdate] = readDaily(q,x,i,p,dateVec)
+
+% http://www.google.com/finance/getprices?q=AAPL&x=NASD&i=120&sessions=ext_hours&p=1d&f=d,c,v,o,h,l&df=cpct&auto=1&ts=1324323553905
+% The base url is http://www.google.com/finance/getprices
+% q is the symbol (AAPL)
+% x is the exchange (NASD)
+% i is the interval in seconds (120 = seconds = 2 minutes)
+% sessions is the session requested (ext_hours)
+% p is the time period (5d = 5 days)
+% f is the requested fields (d,c,v,o,h,l)
+% df ?? (cpct)
+% auto ?? (1)
+% ts is potentially a time stamp (1324323553 905)
+
+%q = 'AAPL';
+%x = 'NASD';
+t = num2str(i);
+%sessions = 'ext_hours';
+sessions = [];
+%p = '1d';
+f = 'd,c,v,o,h,l';
+df = 'cpct';
+auto = num2str(1);
+dateVec = unixtime(dateVec);
+ts = num2str(dateVec);
+
+Webaddress = ['http://www.google.com/finance/getprices?q=' ...
+    q '&x=' x '&i=' t '&sessions=' sessions ...
+    '&p=' p '&f=' f '&df=' df '&auto=' auto '&ts=' ts];
+disp(Webaddress)
+
+
+data = urlread(Webaddress);
+parseData = textscan(data,'%s','delimiter','\n');
+fullData = parseData{1};
+numLines = size(fullData,1);
+for startIndex =1:numLines
+    parseLine = fullData{startIndex,1};
+    if ~isempty(strfind(parseLine,'TIMEZONE_OFFSET'))
+        break
+    end
+end
+rI = 0;
+for lineIndex =startIndex+1:numLines;
+    intervalRow = fullData{lineIndex,1};
+   %d = i/60;
+    
+    A = sscanf(intervalRow,'%d,%f,%f,%f,%f,%d');
+    if isempty(A)
+        rI = rI+1;
+        A = sscanf(intervalRow(2:end),'%d,%f,%f,%f,%f,%d');
+        matlabdate(rI,:) = unixtime(A(1)); 
+       A(1) = datenum(matlabdate(rI,:));
+       lastdateNum = A(1);
+    else
+        interval = datenum([0 0 0 0 0 A(1)*i]);
+        A(1) = interval + lastdateNum;
+        
+    end
+end
+fgrdate = datestr(matlabdate(1,:),0);
+%dateNum = datenum(fgrdate); %#ok<NASGU>
+%dates = (03/18/15:03/23/15); 
+%fts = fints(dates, fulldata); %#ok<NASGU>
+for lineIndex =startIndex+2:numLines
+    %COLUMNS=DATE,CLOSE,HIGH,LOW,OPEN,VOLUME
+    intervalRow = fullData{lineIndex,1};
+    rI = lineIndex-startIndex-1;
+    %d = i/60;
+    A = sscanf(intervalRow,'%d,%f,%f,%f,%f,%d');
+    if isempty(A)
+        A = sscanf(intervalRow(2:end),'%d,%f,%f,%f,%f,%d');
+        matlabdate(rI,:) = unixtime(A(1)); 
+       A(1) = datenum(matlabdate(rI,:));
+       lastdateNum = A(1);
+    else
+        interval = datenum([0 0 0 0 0 A(1)*i]);
+        A(1) = interval+ lastdateNum;
+    end
+    stockDATE(rI)=A(1);  %#ok<*AGROW>
+    CLOSE(rI)=A(2);
+    HIGH(rI)=A(3);
+    LOW(rI)=A(4);
+    OPEN(rI)=A(5);
+    VOLUME(rI)=A(6);
+end
+Columns = [stockDATE(:) CLOSE(:) HIGH(:) LOW(:) OPEN(:) VOLUME(:)];
+xAxis = (1:length(OPEN))*i/3600;
+%rsi = rsindex(CLOSE(:));
+pvi = posvolidx(CLOSE(:),VOLUME(:));
+nvi = negvolidx(CLOSE(:),VOLUME(:));
+figure(1),clf
+plot(xAxis,OPEN),hold on,plot(xAxis,CLOSE,'r'),plot(xAxis,LOW,'g'),
+plot(xAxis,HIGH,'m'),grid on
+title(fgrdate),xlabel('Time [hr]'),ylabel('Price [USD]')
+figure(2),clf
+plot(xAxis(1:end-1),VOLUME(1:end-1)),grid on
+title(fgrdate),xlabel('Time [hr]'),ylabel('Volume')
+%figure(3),clf
+%plot(xAxis,rsi),grid on
+%title(fgrdate),xlabel('Time [hr]'),ylabel('RSI')
+figure(4),clf
+plot(xAxis,pvi),grid on
+title(fgrdate),xlabel('Time [hr]'),ylabel('PVI')
+figure(5),clf
+plot(xAxis,nvi),grid on
+title(fgrdate),xlabel('Time [hr]'),ylabel('NVI')
